@@ -1,27 +1,10 @@
 from playwright.sync_api import Page
 
-"""def execute_action(page: Page, action: dict):
-    try:
-        if action["action"] == "CLICK":
-            x = float(action.get("x", 0))
-            y = float(action.get("y", 0))
-            if x > 1: x /= 1280  # assume pixels
-            if y > 1: y /= 720
-            page.mouse.click(x * page.viewport_size["width"], y * page.viewport_size["height"])
-        elif action["action"] == "TYPE":
-            page.keyboard.type(action.get("text", ""))
-        elif action["action"] == "PRESS_ENTER":
-            page.keyboard.press("Enter")
-        elif action["action"] == "SCROLL":
-            page.mouse.wheel(0, 1000 if "down" in action.get("reasoning", "").lower() else -1000)
-    except Exception as e:
-        print(f"Action execution failed: {e}")"""
-
 def execute_action(page: Page, action: dict):
     try:
         act = action["action"]
 
-        # Helper: convert coordinates (accepts 0–1 fraction OR raw pixels)
+        # Convert coordinates (0–1 normalized values or raw pixels)
         def to_pixels(v, axis: str):
             if v <= 1.0:
                 size = page.viewport_size["width"] if axis == "x" else page.viewport_size["height"]
@@ -60,7 +43,7 @@ def execute_action(page: Page, action: dict):
             page.keyboard.type(text)
 
         elif act == "SCROLL":
-            amount = action.get("amount", 1000)
+            amount = action.get("amount", 500)
             direction = -amount if "up" in action.get("reasoning", "").lower() else amount
             page.mouse.wheel(0, direction)
 

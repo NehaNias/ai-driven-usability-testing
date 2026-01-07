@@ -7,57 +7,6 @@ import io
 import os
 
 def get_ai_action(screenshot_path: str, user_task: str, previous_actions: list, max_retries: int = 3) -> dict:
-    """# ← PASTE YOUR ENTIRE ORIGINAL get_ai_action() FUNCTION HERE (from line ~15 in your script)
-    # Keep everything exactly as it is — only move it here
-    # I'll give you the cleaned version below so you don't have to scroll
-    if not os.path.exists(screenshot_path):
-        return {"action": "FAIL", "reasoning": "Screenshot missing"}
-
-    img = Image.open(screenshot_path)
-    buffer = io.BytesIO()
-    img.save(buffer, format="PNG")
-    base64_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    width, height = img.size
-
-    conversation_history = "\n".join(previous_actions[-3:])
-
-    prompt = f
-    You are an AI usability testing agent. Task: {user_task}
-    Previous actions: {conversation_history}
-
-    Analyze this screenshot ({width}×{height}) and return ONLY valid JSON:
-    {{"action": "CLICK|TYPE|SCROLL|PRESS_ENTER|COMPLETE|FAIL", "x": float, "y": float, "text": "...", "reasoning": "short explanation"}}
-    For CLICK, give x,y as fraction of width/height (0-1) or pixels.
-    
-
-    for _ in range(3):
-        try:
-            response = requests.post(
-                "http://localhost:11434/api/chat",
-                json={
-                    "model": "qwen3-vl:latest",
-                    "messages": [
-                        {"role": "user", "content": prompt},
-                        {"role": "user", "content": "", "images": [base64_image]}
-                    ],
-                    "stream": False
-                },
-                timeout=60
-            )
-            response.raise_for_status()
-            text = response.json()["message"]["content"]
-
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start == -1 or end == 0:
-                continue
-            json_part = text[start:end]
-            return json.loads(json_part)
-        except Exception as e:
-            print(f"Vision API error: {e}")
-            time.sleep(2)
-    return {"action": "FAIL", "reasoning": "Vision model failed after 3 retries"}"""
-
      # Check if screenshot exists
     if not os.path.exists(screenshot_path):
         print(f"Error: Screenshot not found at {screenshot_path}")
@@ -66,7 +15,6 @@ def get_ai_action(screenshot_path: str, user_task: str, previous_actions: list, 
     # Resize image to reduce processing time
     try:
         img = Image.open(screenshot_path)
-        #img = img.resize((800, 450))  # Optimize for faster processing
         screenshot_width, screenshot_height = img.size
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
@@ -87,14 +35,16 @@ def get_ai_action(screenshot_path: str, user_task: str, previous_actions: list, 
 
     TASK: {user_task}
 
-    
-        Respond ONLY with a JSON object in this exact format, with no other text, tags (e.g., no <think>), or explanations.
 
+        Respond ONLY with a JSON object in this exact format, with no other text, tags (e.g., no <tool_call>), or explanations.
+        Close any popups first.
         For each step, choose the most appropriate action from the following options:
 
         1. Identify clickable elements by visual position only.
         2. Estimate where the coordinates of the area is in the image ({screenshot_width}×{screenshot_height}) according to the reasoning.
-        3. Respond ONLY with valid JSON using one of these actions:
+        3. For small dismiss/X/close buttons, aim exactly at the center of the small icon, even if larger areas are nearby. Never click large surrounding elements.
+        4. Use normalized coordinates (0.0 to 1.0 preferred).
+        5. Respond ONLY with valid JSON using one of these actions:
 
         {{"action": "CLICK", "x": <x_value>, "y": <y_value>, "reasoning": "..."}}
         {{"action": "TYPE", "text": <text>, "reasoning": "..."}}
@@ -113,8 +63,8 @@ def get_ai_action(screenshot_path: str, user_task: str, previous_actions: list, 
     for attempt in range(max_retries):
         try:
             response = requests.post(
-                #"http://192.168.137.1:11434/api/chat",
-                "http://localhost:11434/api/chat",
+                "http://192.168.137.1:11434/api/chat",
+                #"http://localhost:11434/api/chat",
                 json={
                     "model": "qwen3-vl:latest",
                     "messages": [

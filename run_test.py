@@ -1,4 +1,3 @@
-# run_test.py
 import os
 import json
 from agent.screenshot_agent import ScreenshotAgent
@@ -24,6 +23,7 @@ def run_usability_test(task: str, url: str = "https://www.amazon.com", max_steps
         )
         page = context.new_page()
         page.goto(url)
+        page.wait_for_timeout(3000)
 
         print(f"\nStarting AI Usability Test")
         print(f"Task: {task}")
@@ -48,9 +48,9 @@ def run_usability_test(task: str, url: str = "https://www.amazon.com", max_steps
                 break
 
             execute_action(page, action)
-            page.wait_for_timeout(1800)  # Natural human-like pause
+            page.wait_for_timeout(1800)  # Pause
 
-        # Save the video with a clean name
+        # Save the video 
         video = page.video
         page.close()
         if video:
@@ -91,7 +91,6 @@ def run_usability_test(task: str, url: str = "https://www.amazon.com", max_steps
 
 
 if __name__ == "__main__":
-    # Change this task whenever you want to test something new
     run_usability_test(
         task="Find a men's waterproof jacket under 100 Euros",
         url="https://www.amazon.com"
