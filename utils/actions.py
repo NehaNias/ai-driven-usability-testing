@@ -4,12 +4,17 @@ def execute_action(page: Page, action: dict):
     try:
         act = action["action"]
 
-        # Convert coordinates (0–1 normalized values or raw pixels)
+        if isinstance(action.get("x"), list) and len(action["x"]) == 2 and action.get("y") is None:
+            action["y"] = action["x"][1]
+            action["x"] = action["x"][0]
+
         def to_pixels(v, axis: str):
+            if isinstance(v, list):
+                v = v[0]
             if v <= 1.0:
                 size = page.viewport_size["width"] if axis == "x" else page.viewport_size["height"]
                 return int(v * size)
-            return int(v)  # already in pixels
+            return int(v)  
 
         x_px = to_pixels(action.get("x", 0), "x")
         y_px = to_pixels(action.get("y", 0), "y")
@@ -43,9 +48,22 @@ def execute_action(page: Page, action: dict):
             page.keyboard.type(text)
 
         elif act == "SCROLL":
-            amount = action.get("amount", 500)
-            direction = -amount if "up" in action.get("reasoning", "").lower() else amount
-            page.mouse.wheel(0, direction)
+            amount = 600 #action.get("amount", 500)
+            direction = action.get("direction", "down").lower()
+            #direction = -amount if "up" in action.get("reasoning", "").lower() else amount
+
+            """if amount <= 1.0:
+                amount = amount * page.viewport_size["height"]
+            else:
+                amount = amount * 300"""
+
+            dx, dy = 0, amount
+            if direction == "up":    dy = -amount
+            elif direction == "left":  dx, dy = -amount, 0
+            elif direction == "right": dx, dy =  amount, 0
+
+            page.mouse.wheel(dx, dy)
+            page.wait_for_timeout(500)
 
         elif act == "PRESS_ENTER":
             page.keyboard.press("Enter")

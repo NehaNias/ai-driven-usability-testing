@@ -12,11 +12,7 @@ env.bak/
 venv.bak/
 *.exe
 
-# Outputs (don't commit results)
-outputs/
-screenshots/
-usability_videos/
-screenshots_history/
+
 
 # IDEs
 .vscode/

@@ -1,94 +1,169 @@
-# ai-driven-usability-testing
-
-test
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
+ai-driven-usability-testing
+An automated usability test preparation system that generates structured, metric-aligned test tasks and executes them on real-world web interfaces using a vision-based LLM agent. The system produces session recordings and structured JSON reports that serve as usability test material for human analysis.
+---
+Overview
+The system consists of two main components:
+Task generation pipeline — automatically generates and validates usability test tasks grounded in ISO 9241-11 and Nielsen's heuristics, using a four-stage validation loop (feasibility check, quality check, metric alignment, redundancy and coverage check)
+Agent execution loop — executes each task on a live website using only screenshots, without any DOM access, and produces a session video and JSON report per task
+---
+Requirements
+Python 3.10 or higher
+A Gemini API key (for task generation and action verification)
+An Ollama Cloud account with access to `qwen3-vl:235b` (for action decisions)
+Playwright installed with Chromium
+---
+Installation
+1. Clone the repository
+```bash
+git clone https://github.com/your-username/ai-driven-usability-testing.git
+cd ai-driven-usability-testing
 ```
-cd existing_repo
-git remote add origin https://gitlab.tugraz.at/4326CFF4E27FD209/ai-driven-usability-testing.git
-git branch -M main
-git push -uf origin main
+2. Create and activate a virtual environment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate        
+
+3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+4. Install Playwright browsers
+```bash
+playwright install chromium
+```
+5. Set up API keys
+The system requires two API keys. You can set them as environment variables or pass them directly in the code.
+```bash
+export GEMINI_API_KEY="your-gemini-api-key"
+export OLLAMA_API_KEY="your-ollama-bearer-token"
 ```
 
-## Integrate with your tools
+Project Structure
+```
+ai-driven-usability-testing/
+│
+├── agent/
+│   ├── base_agent.py           # Abstract base class for agents
+│   └── screenshot_agent.py     # Concrete agent using Qwen3-VL
+│
+├── tasks/
+│   ├── task_generator.py       # Four-stage task generation pipeline
+│   └── generated_tasks.py      # Output of task generation (auto-generated)
+│
+├── utils/
+│   ├── actions.py              # Action execution via Playwright
+│   ├── action_verifier.py      # Action verification
+│   ├── response_parser.py      # JSON and prose parsing of VLM output
+│   └── vision.py               # VLM inference via Ollama
+│
+├── metrics/
+│   └── usability_metrics.py    # Metric computation from action history
+│
+├── batch_run/
+│   └── main.py                 # Batch execution of all tasks
+│
+├── run_test.py                 # Run a single task
+├── requirements.txt
+└── README.md
+```
+---
+Usage
+Step 1 — Generate tasks
+Run the task generator to produce a validated set of usability test tasks for your target website.
+```bash
+python3 -c "
+from tasks.task_generator import TaskGenerator
 
-- [ ] [Set up project integrations](https://gitlab.tugraz.at/4326CFF4E27FD209/ai-driven-usability-testing/-/settings/integrations)
+generator = TaskGenerator(api_key='your-gemini-api-key')
+generator.generate_and_save(
+    website_url='https://www.example.com',
+    website_context='Brief description of the website and its core workflows.',
+    num_tasks=15,
+    filename='generated_tasks.py'
+)
+"
+```
+This will save the generated tasks to `tasks/generated_tasks.py`. Review the tasks manually before running the agent — remove any that are unclear or not suitable for your evaluation.
+The generated task file contains a list of task objects in the following format:
+```python
+TASKS_WITH_METRICS = [
+    {
+        "task": "Search for 'running shoes' and sort the results by Average Customer Review.",
+        "metrics": ["visibility", "efficiency"],
+        "rationale": "..."
+    },
+    ...
+]
+```
+---
+Step 2 — Run a single task
+To run the agent on a single task:
+```bash
+python3 run_test.py
+```
+Or call it programmatically:
+```python
+from run_test import run_usability_test
 
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+run_usability_test(
+    task="Search for 'running shoes' and sort results by Average Customer Review.",
+    url="https://www.example.com",
+    max_steps=35
+)
+```
+The session will be recorded and saved to `outputs/videos/`. A JSON report will be saved to `outputs/reports/`.
+---
+Step 3 — Run all tasks in batch
+To run all tasks from `tasks/generated_tasks.py` sequentially:
+```bash
+python3 batch_run/main.py
+```
+The batch runner reloads the Ollama model between tasks to prevent performance degradation over long sessions. Each task produces:
+A session video at `outputs/videos/[task_name].webm`
+A JSON report at `outputs/reports/[task_name].json`
+Per-step screenshots at `outputs/screenshots/[task_name]/step_NNN.png`
+---
+Step 4 — Analyse results
+After the batch completes, run the analysis script to extract quantitative metrics across all tasks:
+```bash
+python3 analysis.py
+```
+This prints a summary table including task completion rate, average steps, average time, and retry rate, and identifies the highest-effort or failed sessions for further inspection.
+---
+Output Format
+Each JSON report contains the following fields:
+Field	Description
+`task`	Task description string
+`url`	Target website URL
+`success`	Boolean — whether the agent reached COMPLETE
+`reasoning`	Agent's final reasoning string
+`steps_taken`	Total number of steps logged
+`total_time_seconds`	Wall clock elapsed time from start to final action
+`video_path`	Path to the session recording
+`metrics`	Summary dict: task_success, retry_rate, termination_reason, total_time_sec, final_action
+`full_history`	Complete action history list with per-step action, reasoning, success, and timestamp
+---
+Configuration
+Key parameters can be adjusted directly in the relevant files:
+Parameter	Location	Default	Description
+`max_steps`	`run_test.py`	35	Maximum steps per session
+`num_tasks`	`task_generator.py`	15	Number of tasks to generate
+`temperature`	`task_generator.py`	0.6	LLM temperature for task generation
+Scroll distance	`utils/actions.py`	600px	Fixed scroll distance per scroll action
+Action history size	`utils/vision.py`	5	Number of recent steps passed to VLM
+VLM model	`agent/screenshot_agent.py`	`qwen3-vl:235b`	Model used for action decisions
+Verification model	`utils/action_verifier.py`	`gemini-2.5-flash`	Model used for action verification
+---
+Models Used
+Component	Model	Provider
+Action decisions	Qwen3-VL 235B	Ollama Cloud
+Task generation	Gemini 2.5 Flash	Google Gemini API
+Action verification	Gemini 2.5 Flash	Google Gemini API
+OCR extraction	Gemini 2.5 Flash	Google Gemini API
+---
+Notes
+The agent operates entirely through screenshots — no DOM access is used at any point
+Each task starts from a fresh browser session; login state is not preserved across tasks
+If tasks require authentication, add credentials to the agent prompt in `utils/vision.py`
+Session time includes API retry wait periods and per-step pauses — reported times are wall clock elapsed time
+The Ollama Cloud free tier may impose rate limits during periods of high demand; the system implements exponential backoff retry logic for both Ollama and Gemini API calls
