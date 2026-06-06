@@ -200,7 +200,10 @@ Reply ONLY with this JSON:
         if not typed_text:
             return False, "No typed text specified"
         ocr_clean = re.sub(r'[^a-z0-9\s]', '', after_ocr.lower())
-        words = [w for w in typed_text.lower().split() if len(w) > 2]
+        raw_words = typed_text.lower().split()
+        words = [re.sub(r'[^a-z0-9]', '', w) for w in raw_words]
+        words = [w for w in words if len(w) > 2]
+        #words = [w for w in typed_text.lower().split() if len(w) > 2]
         if not words:
             return True, "No meaningful words to verify"
         matched = [w for w in words if re.search(r'\b' + re.escape(w) + r'\b', ocr_clean)]
