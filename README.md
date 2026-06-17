@@ -41,7 +41,7 @@ The system consists of two main components:
     OLLAMA_API_KEY="your-ollama-bearer-token"
 
 ## Project Structure
-
+```
 ai-driven-usability-testing/
 │
 ├── agent/
@@ -78,6 +78,8 @@ ai-driven-usability-testing/
 ├── run_test.py                 # Run a single task
 ├── requirements.txt
 └── README.md
+```
+
 
 ## Usage
 
