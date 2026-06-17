@@ -70,8 +70,8 @@ ai-driven-usability-testing/
 │   ├── cohen_kappa.py          # Computes weighted Cohen's Kappa for inter-rater reliability
 │   ├── entropy.py              # Computes Shannon entropy to assess metric coverage balance
 │   ├── gwet.py                 # Computes Gwet's AC1 coefficient for inter-rater reliability
-│   ├── metrics_report.py       #Aggregates and summarises metrics across all JSON reports
-│   └── percentage.py           ## Computes exact and within-tolerance percentage agreement between raters
+│   ├── metrics_report.py       # Aggregates and summarises metrics across all JSON reports
+│   └── percentage.py           # Computes exact and within-tolerance percentage agreement between raters
 │
 ├── batch_run                   # Batch execution of all tasks
 │                   

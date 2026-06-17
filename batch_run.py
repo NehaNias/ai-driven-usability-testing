@@ -1,8 +1,12 @@
+import argparse
+from dotenv import load_dotenv
 from run_test import run_usability_test
 from tasks.task_generator import TaskGenerator
 import time
 import requests
 from tasks.generated_tasks import TASKS_WITH_METRICS
+
+load_dotenv()                  
 
 def reset_ollama_model(model: str = "qwen3-vl:235b", api_url: str = "https://ollama.com/api/chat"):
     try:
@@ -16,13 +20,13 @@ def reset_ollama_model(model: str = "qwen3-vl:235b", api_url: str = "https://oll
         print(f"Model reset failed: {e}")
 
 def main():
-    website_url = "https://www.amazon.de"
-    website_context = """Amazon is the world's largest online retail platform that allows 
-        users to search, browse, and purchase a vast range of physical and digital products with 
-        fast delivery and convenient payment options. It offers personalized recommendations, 
-        customer reviews, deal sections, and Prime membership benefits, and is used daily for 
-        personal shopping, gift buying, business procurement, and deal hunting by millions of 
-        consumers worldwide."""
+    parser = argparse.ArgumentParser(description="Run batch usability tests")
+    parser.add_argument("--url", default="https://www.amazon.de", 
+                       help="Target website URL (default: Amazon.de)")
+    
+    args = parser.parse_args()
+
+    website_url = args.url
     # Automatically generate tasks 
     """print("Generating usability test tasks...")
     generator = TaskGenerator()  

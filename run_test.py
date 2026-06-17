@@ -1,5 +1,7 @@
 import os
 import json
+import argparse
+from dotenv import load_dotenv
 from agent.screenshot_agent import ScreenshotAgent
 from metrics.usability_metrics import UsabilityMetrics
 from utils.action_verifier import ActionVerifier
@@ -7,6 +9,8 @@ from utils.actions import execute_action
 from playwright.sync_api import sync_playwright
 from google import genai
 from google.genai import types
+
+load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) 
 verifier = ActionVerifier(client=client, model="gemini-2.5-flash")
@@ -114,8 +118,19 @@ def run_usability_test(task: str, url: str = "https://www.amazon.com", max_steps
         print("="*70)
 
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description="Run a single AI usability task")
+    parser.add_argument("--task", required=True, help="The usability task to execute")
+    parser.add_argument("--url", default="https://www.amazon.de", help="Target website URL")
+    parser.add_argument("--max-steps", type=int, default=35, help="Maximum steps (default: 35)")
+    
+    args = parser.parse_args()
+    
     run_usability_test(
-        task="Find a men's waterproof jacket under 100 Euros",
-        url="https://www.amazon.com"
+        task= args.task,
+        url=args.url,
+        max_steps=args.max_steps
     )
+
+if __name__ == "__main__":
+    main()

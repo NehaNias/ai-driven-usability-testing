@@ -1,6 +1,7 @@
 import base64
 import json
 import time
+from dotenv import load_dotenv
 import requests
 from PIL import Image
 import io
@@ -8,7 +9,7 @@ import os
 from utils.response_parser import ResponseParser
 import ollama as ollama_client
 
-
+load_dotenv()
 
 client = ollama_client.Client(
     host="https://ollama.com",

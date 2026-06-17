@@ -1,5 +1,6 @@
+import argparse
 import os
-
+from dotenv import load_dotenv
 import google.genai as genai
 from google.genai import types
 import requests
@@ -298,11 +299,35 @@ class TaskGenerator:
             print(f"Saved to {filepath}")
         return tasks
 
+    def main():
+        load_dotenv()
+        parser = argparse.ArgumentParser(description="Task Generation")
+        parser.add_argument("--url", required=True, help="Target website URL")
+        parser.add_argument("--context", required=True, help="Brief description of the website and its core workflows")
+        parser.add_argument("--num-tasks", type=int, default=15, help="Number of tasks to generate (default: 15)")
+        parser.add_argument("--output", default="generated_tasks.py", help="Output filename (default: generated_tasks.py)")
+        
+        args = parser.parse_args()
+
+        print(f"Starting task generation for {args.url}")
+        
+        generator = TaskGenerator() 
+        
+        generator.generate_and_save(
+            website_url=args.url,
+            website_context=args.context,
+            num_tasks=args.num_tasks,
+            filename=args.output
+        )
+
+
+    if __name__ == "__main__":
+        main()
 
 # Test
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     generator = TaskGenerator()
-    website_context = """Amazon is the world's largest online retail platform that allows 
+    website_context =""" """Amazon is the world's largest online retail platform that allows 
         users to search, browse, and purchase a vast range of physical and digital products with 
         fast delivery and convenient payment options. It offers personalized recommendations, 
         customer reviews, deal sections, and Prime membership benefits, and is used daily for 
@@ -310,4 +335,4 @@ if __name__ == "__main__":
         consumers worldwide. IMPORTANT CONSTRAINT: Only generate tasks that can be completed WITHOUT 
         making any payment. Logging in is allowed."""
 
-    generator.generate_and_save("https://www.amazon.de", website_context, 15)
+    #generator.generate_and_save("https://www.amazon.de", website_context, 15)
