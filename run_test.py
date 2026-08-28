@@ -76,7 +76,7 @@ def run_usability_test(task: str, url: str = "https://www.amazon.com", max_steps
                 action_history.append(history_entry)
 
             agent.log_step(step, action, screenshot_path, success=success)
-            page.wait_for_timeout(1800)  
+            page.wait_for_timeout(4000)  
 
          
         video = page.video
